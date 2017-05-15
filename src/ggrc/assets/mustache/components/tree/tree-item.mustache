@@ -21,40 +21,23 @@
             {{#switch attr_type}}
               {{#case 'custom'}}
                 <div class="custom attr-content">
-                  {{#get_custom_attr_value this instance}}
-                  {{! because the object can currently only be a
+                  {{#get_custom_attr_value thisColumn instance}}
+                     {{! because the object can currently only be a
                       person there is no need to switch }}
-                    {{#using person=object}}
-                      {{>'/static/mustache/people/popover.mustache'}}
-                    {{/using}}
+                      <tree-people-list-field {source}="object">
+                          {{peopleStr}}
+                      </tree-people-list-field>
                   {{/get_custom_attr_value}}
                 </div>
               {{/case}}
 
               {{#case 'role'}}
                 <div class="roles attr-content">
-                  {{#peopleWithRole instance attr_name}}
-                    {{! For the time being, until the UI is clarified, we show
-                        only the first two people with a particular role, and
-                        an ellipsis if truncating was needed.
-                    }}
-                    {{#each peopleIds}}
-                      {{#if_less @index 2}}
-                        <person-info
-                          person-id="{{.}}"
-                          editable="'false'"
-                        ></person-info>
-                      {{/if_less}}
-                    {{/each}}
-
-                    {{#if_less 2 peopleIds.length}}
-                      <span
-                        class="list-truncated"
-                        title="People with this role: {{peopleIds.length}}"
-                        >&hellip;</span>
-                    {{/if_less}}
-
-                  {{/peopleWithRole}}
+                    <tree-people-with-role-list-field
+                            {source}="instance"
+                            {role}="attr_name">
+                        {{peopleStr}}
+                    </tree-people-with-role-list-field>
                 </div>
               {{/case}}
 

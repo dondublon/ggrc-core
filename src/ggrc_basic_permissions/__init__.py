@@ -102,7 +102,12 @@ def objects_via_assignable_query(user_id, context_not_role=True):
             (rel2.destination_type == rel1.destination_type,
              rel2.source_type)
         ], else_=rel2.destination_type).label('type'),
-        rel1.context_id if context_not_role else literal('R')
+        # related_assignables are available for Read, except for Documents
+        # which are available for modification
+        case([
+            (rel2.destination_type == 'Document',
+             rel2.context_id if context_not_role else literal('RUD'))
+        ], else_=(rel2.context_id if context_not_role else literal('R')))
     ).select_from(rel1)
 
   # First we fetch objects where a user is mapped as an assignee

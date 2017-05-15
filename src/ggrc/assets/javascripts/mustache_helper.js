@@ -1122,12 +1122,6 @@ Mustache.registerHelper('date', function (date, hideTime) {
         // Passed in the context object instead of the context ID, so use the ID
         contextId = contextId.id;
       }
-      //  When checking permission for changing person role,
-      //  context_id is in parentInstance
-      if (contextId === undefined && options.context &&
-      options.context.parentInstance) {
-        contextId = options.context.parentInstance.context_id;
-      }
       //  Using `context=null` in Mustache templates, when `null` is not defined,
       //  causes `context_id` to be `""`.
       if (contextId === '' || contextId === undefined) {

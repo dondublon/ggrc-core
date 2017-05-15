@@ -503,6 +503,21 @@ describe('GGRC.Components.mapperResults', function () {
       }));
     });
 
+    it('sets "read" to permissions if model is person', function () {
+      var result;
+      viewModel.attr('type', 'Person');
+      spyOn(viewModel, 'useSnapshots')
+        .and.returnValue(false);
+      spyOn(viewModel, 'prepareBaseQuery')
+        .and.returnValue({mockData: 'basePagingSort'});
+      result = viewModel.getQuery('Person', true);
+      expect(result.data[0]).toEqual(jasmine.objectContaining({
+        mockData: 'basePagingSort',
+        permissions: 'read',
+        type: 'Person'
+      }));
+    });
+
     it('transform query to snapshot if useSnapshots is true', function () {
       var result;
       spyOn(viewModel, 'useSnapshots')
@@ -1013,5 +1028,68 @@ describe('GGRC.Components.mapperResults', function () {
         expect(viewModel.attr('items').length).toEqual(0);
       });
     });
+  });
+
+  describe('buildRelatedData() method', function () {
+    var viewModel;
+
+    beforeEach(function () {
+      var Component = GGRC.Components.get('mapperResults');
+      Component.prototype.viewModel.init = undefined;
+      viewModel = GGRC.Components.getViewModel('mapperResults');
+      viewModel.attr('mapper', {});
+    });
+
+    it('method should return data from "relatedData" array',
+      function () {
+        var relatedData = {
+          Snapshot: {
+            ids: [1, 2, 3]
+          }
+        };
+
+        var result = viewModel
+          .buildRelatedData(relatedData, 'Snapshot');
+        expect(result.Snapshot.ids.length).toEqual(3);
+        expect(result.Snapshot.ids[0]).toEqual(1);
+      }
+    );
+
+    it('method should return data from "deferred_list" array',
+      function () {
+        var relatedData = {
+          Snapshot: {
+            ids: [1, 2, 3]
+          }
+        };
+        var result;
+
+        viewModel.attr('mapper.deferred_list', [
+          {id: 5, type: 'Snapshot'},
+          {id: 25, type: 'Snapshot'}
+        ]);
+
+        result = viewModel
+          .buildRelatedData(relatedData, 'Snapshot');
+        expect(result.Snapshot.ids.length).toEqual(2);
+        expect(result.Snapshot.ids[0]).toEqual(5);
+      }
+    );
+
+    it('return data from "deferred_list" array. RelatedData is undefined',
+      function () {
+        var result;
+
+        viewModel.attr('mapper.deferred_list', [
+          {id: 5, type: 'Snapshot'},
+          {id: 25, type: 'Snapshot'}
+        ]);
+
+        result = viewModel
+          .buildRelatedData(undefined, 'Snapshot');
+        expect(result.Snapshot.ids.length).toEqual(2);
+        expect(result.Snapshot.ids[0]).toEqual(5);
+      }
+    );
   });
 });

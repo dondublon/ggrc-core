@@ -5,18 +5,14 @@
 
 {{#switch attr_name}}
   {{#case 'ra_manager'}}
-    <span>
-      {{#using contact=instance.ra_manager}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-      {{/using}}
-    </span>
+      <tree-people-list-field {source}="instance.ra_manager">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'ra_counsel'}}
-    <span>
-      {{#using contact=instance.ra_counsel}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-      {{/using}}
-    </span>
+      <tree-people-list-field {source}="instance.ra_counsel">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'status'}}
     {{#using status=instance.status}}

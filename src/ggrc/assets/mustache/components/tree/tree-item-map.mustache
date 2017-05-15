@@ -7,6 +7,9 @@
   {{#if allow_mapping_or_creating}}
     <a class="{{cssClasses}}"
        href="javascript://"
+       {{#if disableLink}}
+         class="disabled"
+       {{/if}}
        rel="tooltip"
        data-placement="left"
        data-toggle="unified-mapper"

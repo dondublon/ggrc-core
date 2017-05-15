@@ -9,14 +9,15 @@ from os.path import dirname
 from os.path import join
 from collections import defaultdict
 
-from ggrc.models import all_models
 # pylint: disable=unused-import
 from ggrc.app import app  # NOQA
+from ggrc.models import all_models
 import ggrc_basic_permissions as perms
 
 from integration.ggrc import TestCase
 from integration.ggrc.api_helper import Api
 from integration.ggrc.generator import ObjectGenerator
+from integration.ggrc.models import factories
 
 from appengine import base
 
@@ -201,3 +202,56 @@ class TestPermissionsOnAssessmentTemplate(TestCase):
     self.assert200(resp)
     self.assertFalse(all_models.AssessmentTemplate.query.filter(
         all_models.AssessmentTemplate == self.assessment_template.id).all())
+
+
+@base.with_memcache
+class TestPermissionsOnAssessmentRelatedAssignables(TestCase):
+  """Test check Reader permissions for Assessment related assignables
+
+  Global Reader once assigned to Assessment as Assessor, should have
+  permissions to read/update/delete URLs(Documents) related to this Assessment
+  """
+  def setUp(self):
+    super(TestPermissionsOnAssessmentRelatedAssignables, self).setUp()
+    self.api = Api()
+    self.generator = ObjectGenerator()
+
+    _, self.reader = self.generator.generate_person(
+        user_role="Reader"
+    )
+    audit = factories.AuditFactory()
+    assessment = factories.AssessmentFactory(audit=audit)
+    object_person_rel = factories.RelationshipFactory(
+        source=assessment,
+        destination=self.reader
+    )
+    factories.RelationshipAttrFactory(
+        relationship_id=object_person_rel.id,
+        attr_name="AssigneeType",
+        attr_value="Assessor"
+    )
+
+    factories.RelationshipFactory(source=audit, destination=assessment)
+    document = factories.DocumentFactory()
+    document_id = document.id
+    doc_rel = factories.RelationshipFactory(source=assessment,
+                                            destination=document)
+    doc_rel_id = doc_rel.id
+
+    self.api.set_user(self.reader)
+    self.document = all_models.Document.query.get(document_id)
+    self.doc_relationship = all_models.Relationship.query.get(doc_rel_id)
+
+  def test_delete_action(self):
+    """Test permissions for delete action on Document"""
+    resp = self.api.delete(self.document)
+    self.assert200(resp)
+    self.assertFalse(all_models.Document.query.filter(
+        all_models.Document.id == self.document.id).all())
+
+  def test_unmap_action(self):
+    """Test permissions for unmap action on Document"""
+    resp = self.api.delete(self.doc_relationship)
+    self.assert200(resp)
+    self.assertFalse(all_models.Relationship.query.filter(
+        all_models.Relationship.id == self.doc_relationship.id).all())

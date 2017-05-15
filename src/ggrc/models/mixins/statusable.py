@@ -28,6 +28,14 @@ class Statusable(object):
       nullable=False,
       default=START_STATE)
 
+  _aliases = {
+      "status": {
+          "display_name": "State",
+          "mandatory": False,
+          "description": "Options are:\n{}".format('\n'.join(VALID_STATES))
+      }
+  }
+
   @classmethod
   def default_status(cls):
     return "Not Started"

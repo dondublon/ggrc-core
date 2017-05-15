@@ -78,6 +78,7 @@
     relevant: [],
     submitCbs: $.Callbacks(),
     afterSearch: false,
+    deferred_list: [],
     afterShown: function () {
       this.onSubmit();
     },
@@ -270,11 +271,24 @@
       },
       inserted: function () {
         var self = this;
+        var deferredToList;
         this.scope.attr('mapper.selected').replace([]);
         this.scope.attr('mapper.entries').replace([]);
 
         this.setModel();
         this.setBinding();
+
+        if (this.scope.attr('deferred_to') &&
+          this.scope.attr('deferred_to').list) {
+          deferredToList = this.scope.attr('deferred_to').list
+            .map(function (item) {
+              return {
+                id: item.id,
+                type: item.type
+              };
+            });
+          this.scope.attr('mapper.deferred_list', deferredToList);
+        }
 
         setTimeout(function () {
           self.scope.attr('mapper').afterShown();

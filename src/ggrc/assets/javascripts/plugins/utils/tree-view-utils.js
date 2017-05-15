@@ -171,6 +171,10 @@
           disableConfiguration: true
         };
       }
+      //  it should be like optional parameter on higher-level logic
+      if (modelType === 'CycleTaskGroupObjectTask' && CurrentPage.isMyWork()) {
+        displayAttrNames.push('end_date');
+      }
 
       if (!savedAttrList.length && CurrentPage.isMyAssessments()) {
         displayAttrNames.push('assignees', 'verifiers', 'updated_at');

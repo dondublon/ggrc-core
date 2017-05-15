@@ -5,27 +5,19 @@
 
 {{#switch attr_name}}
   {{#case 'owner'}}
-    {{#if owners.length}}
-      {{#using contacts=owners}}
-        {{#contacts}}
-          {{{renderLive '/static/mustache/people/popover.mustache' person=this}}}
-        {{/contacts}}
-      {{/using}}
-    {{/if}}
+      <tree-people-list-field {source}="instance.owners">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'contact'}}
-    <span>
-      {{#using contact=instance.contact}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-      {{/using}}
-    </span>
+      <tree-people-list-field {source}="instance.contact">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'secondary_contact'}}
-    <span>
-      {{#using contact=instance.secondary_contact}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-      {{/using}}
-    </span>
+      <tree-people-list-field {source}="instance.secondary_contact">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'network_zone'}}
     {{#using network_zone=instance.network_zone}}
@@ -51,22 +43,19 @@
   {{/case}}
 
   {{#case 'creators'}}
-      <tree-assignee-field type="Creator"
-        {instance}='instance'>
-        {{assigneeStr}}
-      </tree-assignee-field>
+      <tree-people-list-field {source}="instance.assignees" filter="Creator">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'assignees'}}
-      <tree-assignee-field type="Assessor"
-        {instance}='instance'>
-        {{assigneeStr}}
-      </tree-assignee-field>
+      <tree-people-list-field {source}="instance.assignees" filter="Assessor">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'verifiers'}}
-      <tree-assignee-field type="Verifier"
-        {instance}='instance'>
-        {{assigneeStr}}
-      </tree-assignee-field>
+      <tree-people-list-field {source}="instance.assignees" filter="Verifier">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'created_at'}}
       {{localize_date instance.created_at}}
@@ -81,6 +70,14 @@
   {{/case}}
 
   {{#default}}
-    {{get_default_attr_value attr_name instance}}
+      {{#if_helpers '\
+      #if_equals' attr_name 'url' '\
+      or #if_equals' attr_name 'reference_url'}}
+          <a class="url" href="{{get_url_value attr_name instance}}" target="_blank">
+              {{get_default_attr_value attr_name instance}}
+          </a>
+      {{else}}
+          {{get_default_attr_value attr_name instance}}
+      {{/if_helpers}}
   {{/default}}
 {{/switch}}

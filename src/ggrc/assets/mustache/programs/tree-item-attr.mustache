@@ -10,9 +10,8 @@
         <span>
           {{#using role=instance.role}}
             {{#if_equals role.name 'ProgramOwner'}}
-              {{#using contact=instance.person}}
-                {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-              {{/using}}
+                <tree-people-list-field {source}="instance.contact">
+                </tree-people-list-field>
             {{/if_equals}}
           {{/using}}
         </span>
@@ -20,18 +19,12 @@
     {{/with_mapping}}
   {{/case}}
   {{#case 'contact'}}
-    <span>
-      {{#using contact=instance.contact}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-      {{/using}}
-    </span>
+      <tree-people-list-field {source}="instance.contact">
+      </tree-people-list-field>
   {{/case}}
   {{#case 'secondary_contact'}}
-    <span>
-      {{#using contact=instance.secondary_contact}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-      {{/using}}
-    </span>
+      <tree-people-list-field {source}="instance.secondary_contact">
+      </tree-people-list-field>
   {{/case}}
   {{#case 'status'}}
     {{#using status=instance.status}}
@@ -45,7 +38,8 @@
     {{#if_helpers '\
     #if_equals' attr_name 'url' '\
     or #if_equals' attr_name 'reference_url'}}
-      <a class="url" href="{{get_url_value attr_name instance}}" target="_blank">
+      <a class="url" href="{{get_url_value attr_name instance}}" target="_blank"
+        rel="tooltip" title="{{get_default_attr_value attr_name instance}}">
         {{get_default_attr_value attr_name instance}}
       </a>
     {{else}}

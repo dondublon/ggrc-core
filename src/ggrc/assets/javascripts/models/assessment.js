@@ -371,48 +371,6 @@
     },
     info_pane_preload: function () {
       this.refresh();
-    },
-    get_related_objects_as_source: function () {
-      var dfd = can.Deferred();
-      var self = this;
-      var snapshots = GGRC.Utils.Snapshots;
-      this.get_binding('related_objects_as_source')
-        .refresh_instances()
-        .then(function (list) {
-          var newList = list.filter(function (item) {
-            return !snapshots.isSnapshotModel(item.instance.type) &&
-                item.instance.type !== 'Comment';
-          });
-          newList.forEach(function (item) {
-            var query;
-            var instance = item.instance;
-            if (snapshots.isSnapshotType(instance)) {
-              query = snapshots.getSnapshotItemQuery(
-                self, instance.child_id, instance.child_type);
-
-              GGRC.Utils.QueryAPI
-                .makeRequest(query)
-                .done(function (responseArr) {
-                  var data = responseArr[0];
-                  var value = data.Snapshot.values[0];
-                  var object;
-
-                  if (!value) {
-                    return;
-                  }
-
-                  object = GGRC.Utils.Snapshots.toObject(value);
-                  instance.attr('class', object.class);
-                  instance.attr('snapshot_object_class',
-                    'snapshot-object');
-                  instance.attr('title', object.title);
-                  instance.attr('viewLink', object.originalLink);
-                });
-            }
-          });
-          dfd.resolve(newList);
-        });
-      return dfd;
     }
   });
 })(window.can, window.GGRC, window.CMS);

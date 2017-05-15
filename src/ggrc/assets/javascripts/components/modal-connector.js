@@ -20,6 +20,12 @@
     //  new view template files.
     template: '<isolate-form><content/></isolate-form>',
     viewModel: {
+      define: {
+        fromBinding: {
+          type: Boolean,
+          value: false
+        }
+      },
       parent_instance: null,
       instance: null,
       instance_attr: '@',
@@ -38,7 +44,6 @@
         var that = this;
         var key;
         var sourceMappingSource;
-        var mapperGetter;
         this.viewModel.attr('controller', this);
         if (!this.viewModel.instance) {
           this.viewModel.attr('deferred', true);
@@ -67,11 +72,10 @@
 
         sourceMappingSource =
           this.viewModel[this.viewModel.source_mapping_source];
-        mapperGetter = this.viewModel.mapping_getter;
 
         if (sourceMappingSource) {
-          if (mapperGetter) {
-            mapperGetter.then(function (list) {
+          if (this.viewModel.attr('fromBinding')) {
+            this.get_mapping().then(function (list) {
               this.setListItems(list);
             }.bind(this));
           } else {
@@ -350,6 +354,48 @@
         }
 
         this.viewModel.list.push(item);
+      },
+      get_mapping: function () {
+        var instance = this.viewModel.attr('instance');
+        var dfd = can.Deferred();
+        var snapshots = GGRC.Utils.Snapshots;
+        instance.get_binding('related_objects_as_source')
+          .refresh_instances()
+          .then(function (list) {
+            var newList = list.filter(function (item) {
+              return !snapshots.isSnapshotModel(item.instance.type) &&
+                  item.instance.type !== 'Comment';
+            });
+            newList.forEach(function (item) {
+              var query;
+              var instance = item.instance;
+              if (snapshots.isSnapshotType(instance)) {
+                query = snapshots.getSnapshotItemQuery(
+                  instance, instance.child_id, instance.child_type);
+
+                GGRC.Utils.QueryAPI
+                  .makeRequest(query)
+                  .done(function (responseArr) {
+                    var data = responseArr[0];
+                    var value = data.Snapshot.values[0];
+                    var object;
+
+                    if (!value) {
+                      return;
+                    }
+
+                    object = GGRC.Utils.Snapshots.toObject(value);
+                    instance.attr('class', object.class);
+                    instance.attr('snapshot_object_class',
+                      'snapshot-object');
+                    instance.attr('title', object.title);
+                    instance.attr('viewLink', object.originalLink);
+                  });
+              }
+            });
+            dfd.resolve(newList);
+          });
+        return dfd;
       }
     },
     helpers: {

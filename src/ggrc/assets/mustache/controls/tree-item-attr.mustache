@@ -6,41 +6,29 @@
 
 {{#switch attr_name}}
   {{#case 'owner'}}
-    {{#if owners.length}}
-      {{#using contacts=owners}}
-        {{#contacts}}
-          {{{renderLive '/static/mustache/people/popover.mustache' person=this}}}
-        {{/contacts}}
-      {{/using}}
-    {{/if}}
+      <tree-people-list-field {source}="instance.owners">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'contact'}}
-    <span>
-      {{#using contact=instance.contact}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-      {{/using}}
-    </span>
+      <tree-people-list-field {source}="instance.contact">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'secondary_contact'}}
-    <span>
-      {{#using contact=instance.secondary_contact}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-      {{/using}}
-    </span>
+      <tree-people-list-field {source}="instance.secondary_contact">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'principal_assessor'}}
-    <span>
-      {{#using contact=instance.principal_assessor}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-      {{/using}}
-    </span>
+      <tree-people-list-field {source}="instance.principal_assessor">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'secondary_assessor'}}
-    <span>
-      {{#using contact=instance.secondary_assessor}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-      {{/using}}
-    </span>
+      <tree-people-list-field {source}="instance.secondary_assessor">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'kind'}}
     {{#using kind=instance.kind}}

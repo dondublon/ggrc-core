@@ -16,9 +16,9 @@
     {{/using}}
   {{/case}}
   {{#case 'assignee'}}
-    {{#using contact=instance.contact}}
-      <div>{{firstnonempty contact.name contact.email ''}}</div>
-    {{/using}}
+      <tree-people-list-field {source}="instance.contact">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'status'}}
     {{#using status=instance.status}}

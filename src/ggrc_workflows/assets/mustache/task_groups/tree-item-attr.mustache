@@ -5,11 +5,9 @@
 
 {{#switch attr_name}}
   {{#case 'assignee'}}
-    {{#using assignee=instance.contact}}
-      {{#using workflow=instance.workflow}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=assignee}}}
-      {{/using}}
-    {{/using}}
+      <tree-people-list-field {source}="instance.contact">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'status'}}
     {{#using status=instance.status}}

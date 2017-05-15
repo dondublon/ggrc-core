@@ -165,6 +165,7 @@ def get_user_roles(obj, people, roles):
       if acl.get('ac_role_id') == role_id]
 
 
+# pylint: disable=too-many-return-statements
 def get_value(people_group, roles, audit, obj, template=None):
   """Return the people related to an Audit belonging to the given role group.
 
@@ -190,8 +191,10 @@ def get_value(people_group, roles, audit, obj, template=None):
     if people_group == "creator":
       # don't use get_current_user because that returns a proxy
       return Person.query.get(get_current_user_id())
-    elif people_group == "assessors":
+    elif people_group == "verifiers":
       return list(auditors)
+    elif people_group == "assessors":
+      return getattr(audit, "contact", None)
 
     return None
 

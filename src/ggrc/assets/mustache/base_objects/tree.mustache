@@ -31,11 +31,9 @@
                       {{#if_equals attr_type 'custom'}}
                         <div class="custom tree-title-area">
                           {{#get_custom_attr_value this instance}}
-                            {{! because the object can currently only be a
-                                person there is no need to switch }}
-                            {{#using person=object}}
-                              {{>'/static/mustache/people/popover.mustache'}}
-                            {{/using}}
+                              <tree-people-list-field {source}="object">
+                                  {{peopleStr}}
+                              </tree-people-list-field>
                           {{/get_custom_attr_value}}
                         </div>
                       {{else}}

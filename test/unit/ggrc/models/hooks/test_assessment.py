@@ -43,7 +43,7 @@ class GetValueTestCase(unittest.TestCase):
     self.related_object.revision.content = {}
 
   # pylint: disable=invalid-name
-  def test_returns_auditors_as_default_assessors_when_no_template(
+  def test_returns_auditors_as_default_verifiers_when_no_template(
       self, person_class, get_current_user_id
   ):
     """The function should return all Audit's assessors if no template given.
@@ -52,7 +52,7 @@ class GetValueTestCase(unittest.TestCase):
     get_current_user_id.return_value = 42
 
     people = assessment.get_value(
-        "assessors", [], self.audit, self.related_object, template=None)
+        "verifiers", [], self.audit, self.related_object, template=None)
 
     self.assertEqual(people, [self.person_1, self.person_3])
 

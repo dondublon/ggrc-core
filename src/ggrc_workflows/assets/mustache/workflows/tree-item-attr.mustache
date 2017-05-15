@@ -10,9 +10,9 @@
         <span>
           {{#using role=instance.role}}
             {{#if_equals role.name 'WorkflowOwner'}}
-              {{#using contact=instance.person}}
-                {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-              {{/using}}
+                <tree-people-list-field {source}="instance.person">
+                    {{peopleStr}}
+                </tree-people-list-field>
             {{/if_equals}}
           {{/using}}
         </span>

@@ -175,7 +175,7 @@ class AttributeInfo(object):
   def gather_attr_dicts(cls, tgt_class, src_attr):
     """ Gather dictionaries from target class parets """
     result = {}
-    for base_class in tgt_class.__bases__:
+    for base_class in reversed(tgt_class.__bases__):
       base_result = cls.gather_attr_dicts(base_class, src_attr)
       result.update(base_result)
     attrs = getattr(tgt_class, src_attr, {})

@@ -231,7 +231,7 @@
           query = GGRC.Utils.Snapshots.transformQuery(query);
         }
         // Add Permission check
-        query.permissions = 'update';
+        query.permissions = (modelName === 'Person') ? 'read' : 'update';
         query.type = queryType || 'values';
 
         if (!relatedQuery) {
@@ -305,7 +305,8 @@
           .makeRequest(query)
           .done(function (responseArr) {
             var data = responseArr[0];
-            var relatedData = responseArr[1];
+            var relatedData =
+              this.buildRelatedData(responseArr[1], modelKey);
             var result =
               data[modelKey].values.map(function (value) {
                 return {
@@ -329,6 +330,36 @@
             this.attr('isLoading', false);
           }.bind(this));
         return dfd;
+      },
+      buildRelatedData: function (relatedData, type) {
+        var deferredList = this.attr('mapper.deferred_list');
+        var ids;
+
+        if (!deferredList || !deferredList.length) {
+          return relatedData;
+        } else if (!relatedData) {
+          relatedData = {};
+          relatedData[type] = {};
+          ids = deferredList
+            .map(function (item) {
+              return item.id;
+            });
+        } else {
+          ids = deferredList
+            .filter(function (item) {
+              return relatedData[item.type];
+            })
+            .map(function (item) {
+              return item.id;
+            });
+
+          if (!ids.length) {
+            return relatedData;
+          }
+        }
+
+        relatedData[type].ids = ids;
+        return relatedData;
       },
       loadAllItemsIds: function () {
         var modelKey = this.getModelKey();

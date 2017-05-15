@@ -38,7 +38,6 @@ describe('GGRC.Components.modalConnector', function () {
           type: 'Assessment'
         }],
         mapping: 'mockSource',
-        mapping_getter: can.Deferred().resolve('mockList'),
         setListItems: jasmine.createSpy(),
         instance_attr: ''
       });
@@ -108,7 +107,6 @@ describe('GGRC.Components.modalConnector', function () {
     });
     it('calls setListItems after refresing binding' +
     ' if mapper getter is undefined', function () {
-      viewModel.mapping_getter = undefined;
       handler();
       expect(that.setListItems).toHaveBeenCalledWith('mockList');
     });
@@ -293,5 +291,89 @@ describe('GGRC.Components.modalConnector', function () {
       handler(element, {}, {item: 'mock'});
       expect(that.viewModel.parent_instance.changes.length).toEqual(2);
     });
+  });
+  describe('get_mapping() method', function () {
+    var relatedObjectsAsSource;
+    var responseSnapshotTitle = 'SnapshotTitle';
+    var responseSnapshotUrl = '/someTypeS/123';
+    var handler;
+    var that;
+
+    beforeEach(function () {
+      var assessment;
+      var snapshotResponse = [
+        {
+          Snapshot: {
+            values: [
+              {
+                type: 'Snapshot',
+                child_id: 123
+              }
+            ]
+          }
+        }
+      ];
+
+      assessment = new CMS.Models.Assessment();
+
+      relatedObjectsAsSource = new can.List([
+        {
+          instance: {
+            type: 'Audit',
+            id: 5
+          }
+        },
+        {
+          instance: {
+            type: 'Snapshot',
+            id: 123
+          }
+        }
+      ]);
+
+      // stubs
+      assessment.get_binding = function () {
+        return assessment;
+      };
+
+      assessment.refresh_instances = function () {
+        return can.Deferred().resolve(relatedObjectsAsSource);
+      };
+
+      viewModel.attr('instance', assessment);
+      that = {
+        viewModel: viewModel
+      };
+
+      // spyon
+      spyOn(GGRC.Utils.QueryAPI, 'makeRequest').and.returnValue(
+        can.Deferred().resolve(snapshotResponse)
+      );
+
+      spyOn(GGRC.Utils.Snapshots, 'toObject').and.returnValue(
+        {
+          title: responseSnapshotTitle,
+          originalLink: responseSnapshotUrl
+        }
+      );
+      handler = events.get_mapping.bind(that);
+    });
+
+    it('get_mapping() should update snapshot objcets',
+      function (done) {
+        var dfd = handler();
+        var snapshotItem = relatedObjectsAsSource[1].instance;
+
+        dfd.done(function () {
+          // should be called only once because list has only one snapshot
+          expect(GGRC.Utils.QueryAPI.makeRequest.calls.count()).toEqual(1);
+          expect(GGRC.Utils.Snapshots.toObject.calls.count()).toEqual(1);
+
+          expect(snapshotItem.attr('title')).toEqual(responseSnapshotTitle);
+          expect(snapshotItem.attr('viewLink')).toEqual(responseSnapshotUrl);
+          done();
+        });
+      }
+    );
   });
 });

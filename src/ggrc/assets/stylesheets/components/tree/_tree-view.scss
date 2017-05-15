@@ -162,14 +162,20 @@ tree-item {
       }
     }
 
-    .selectable-attrs {
-      padding: 0 10px;
+    .flex-box.selectable-attrs {
+      flex-wrap: wrap;
     }
 
     .attr-cell {
       height: 60px;
       align-items: center;
       flex: 1 1;
+      margin: 0 5px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-wrap: break-word;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
 
       &:first-child {
         flex: 2 2;
@@ -186,24 +192,6 @@ tree-item {
           max-height: 32px;
           p, ul, ol {
             margin-bottom: 0;
-          }
-        }
-
-        &.roles {
-          display: block;
-          max-height: 100%;
-          width: 100%;
-          padding: 0 10px;
-          .person {
-            height: 20px;
-            max-width: 1px;  // FIXME: dirty fix for flex box overstretching
-            overflow: visible;
-            white-space: nowrap;
-          }
-          .list-truncated {
-            display: inline-block;
-            width: 100%;
-            cursor: default;
           }
         }
       }

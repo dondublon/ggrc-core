@@ -271,6 +271,8 @@ dashboard-js-files:
   - components/last-assessment-date/last-assessment-date.js
   - components/tree/tree-no-results.js
   - components/tree/tree-assignee-field.js
+  - components/tree/tree-people-list-field.js
+  - components/tree/tree-people-with-role-list-field.js
   - components/page-header/page-header.js
   - components/info-pane/info-pane-footer.js
   - components/assessment/mapped-objects/mapped-controls.js

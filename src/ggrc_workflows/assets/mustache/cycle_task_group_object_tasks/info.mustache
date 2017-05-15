@@ -194,7 +194,7 @@
         <div class="span12">
           {{#with_mapping_count instance 'cycle_task_entries'}}
             {{#count}}
-              <h6>Comments ({{count}})</h6>
+              <h6>Task comments ({{count}})</h6>
               <mapping-tree-view
                 parent-instance="instance"
                 mapping="instance.class.info_pane_options.comments.mapping"
@@ -204,7 +204,7 @@
               </mapping-tree-view>
             {{/count}}
             {{^count}}
-              <h6>Comments</h6>
+              <h6>Task comments</h6>
               No comments.
             {{/count}}
           {{/with_mapping_count}}

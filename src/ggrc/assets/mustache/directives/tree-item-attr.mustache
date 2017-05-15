@@ -5,27 +5,19 @@
 
 {{#switch attr_name}}
   {{#case 'owner'}}
-    {{#if owners.length}}
-      {{#using contacts=owners}}
-        {{#contacts}}
-          {{{renderLive '/static/mustache/people/popover.mustache' person=this}}}
-        {{/contacts}}
-      {{/using}}
-    {{/if}}
+      <tree-people-list-field {source}="instance.owners">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'contact'}}
-    <span>
-      {{#using contact=instance.contact}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-      {{/using}}
-    </span>
+      <tree-people-list-field {source}="instance.contact">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'secondary_contact'}}
-    <span>
-      {{#using contact=instance.secondary_contact}}
-        {{{renderLive '/static/mustache/people/popover.mustache' person=contact}}}
-      {{/using}}
-    </span>
+      <tree-people-list-field {source}="instance.secondary_contact">
+          {{peopleStr}}
+      </tree-people-list-field>
   {{/case}}
   {{#case 'status'}}
     {{#using status=instance.status}}

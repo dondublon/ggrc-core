@@ -24,11 +24,14 @@ describe('GGRC.Utils.TreeView module', function () {
   describe('getColumnsForModel() method', function () {
     var origCustomAttrDefs;
     var origRoleList;
+    var origAttrs;
 
     beforeAll(function () {
       method = module.getColumnsForModel;
 
       origRoleList = GGRC.access_control_roles;
+      origAttrs = [].concat(CMS.Models.CycleTaskGroupObjectTask
+        .tree_view_options.display_attr_names);
       GGRC.access_control_roles = [
         {id: 5, name: 'Role 5', object_type: 'Market'},
         {id: 9, name: 'Role 9', object_type: 'Audit'},
@@ -54,6 +57,9 @@ describe('GGRC.Utils.TreeView module', function () {
     afterAll(function () {
       GGRC.access_control_roles = origRoleList;
       GGRC.custom_attr_defs = origCustomAttrDefs;
+      CMS.Models.CycleTaskGroupObjectTask
+        .tree_view_options.display_attr_names =
+          origAttrs;
     });
 
     it('includes custom roles info in the result ', function () {
@@ -69,6 +75,36 @@ describe('GGRC.Utils.TreeView module', function () {
         };
         expect(result).toContain(jasmine.objectContaining(expected));
       });
+    });
+
+    it('adds to selected columns "end_date" ' +
+    'if modelType is CycleTaskGroupObjectTask and current page is MyWork',
+    function () {
+      var result;
+      var modelType = 'CycleTaskGroupObjectTask';
+      GGRC.pageType = 'MY_WORK';
+      CMS.Models[modelType].tree_view_options.display_attr_names =
+        ['title', 'assignee', 'start_date'];
+
+      result = method(modelType, null);
+      expect(result.selected).toContain(jasmine.objectContaining({
+        attr_name: 'end_date'
+      }));
+    });
+
+    it('does not add to selected columns "end_date" ' +
+    'if it is CycleTaskGroupObjectTask but current page is not MyWork',
+    function () {
+      var result;
+      var modelType = 'CycleTaskGroupObjectTask';
+      GGRC.pageType = 'Person';
+      CMS.Models[modelType].tree_view_options.display_attr_names =
+        ['title', 'assignee', 'start_date'];
+
+      result = method(modelType, null);
+      expect(result.selected).not.toContain(jasmine.objectContaining({
+        attr_name: 'end_date'
+      }));
     });
   });
 });
