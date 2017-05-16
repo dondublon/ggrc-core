@@ -30,6 +30,7 @@ from ggrc.fulltext.attributes import (
     DateFullTextAttr
 )
 from ggrc.fulltext.mixin import Indexed, ReindexRule
+from ggrc.login import get_current_user_id
 import pdb
 
 class CycleTaskGroupObjectTask(
@@ -202,13 +203,16 @@ class CycleTaskGroupObjectTask(
     destinations = [r.destination for r in self.related_destinations]
     return sources + destinations
 
+  #def logged_equal_to_contact(self):
+  #  return
+
   @hybrid_property
   def allow_decline(self):
-    return True
+    return get_current_user_id() == self.contact_id
 
   @hybrid_property
   def allow_verify(self):
-    return False
+    return get_current_user_id() == self.contact_id
 
   @classmethod
   def _filter_by_cycle(cls, predicate):
