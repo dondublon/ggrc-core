@@ -6,6 +6,8 @@
 
 from sqlalchemy import orm
 from sqlalchemy.ext.associationproxy import association_proxy
+# from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from ggrc import db
 from ggrc.models.computed_property import computed_property
@@ -28,7 +30,7 @@ from ggrc.fulltext.attributes import (
     DateFullTextAttr
 )
 from ggrc.fulltext.mixin import Indexed, ReindexRule
-
+import pdb
 
 class CycleTaskGroupObjectTask(
         WithContact, Stateful, Timeboxed, Relatable, Notifiable,
@@ -122,6 +124,7 @@ class CycleTaskGroupObjectTask(
   def cycle_task_objects_for_cache(self):
     """Changing task state must invalidate `workflow_state` on objects
     """
+    print("DEBUG cycle_task_objects_for_cache")
     return [(object_.__class__.__name__, object_.id) for object_ in
             self.related_objects]  # pylint: disable=not-an-iterable
 
@@ -136,7 +139,9 @@ class CycleTaskGroupObjectTask(
       'selected_response_options',
       PublishOnly('object_approval'),
       PublishOnly('finished_date'),
-      PublishOnly('verified_date')
+      PublishOnly('verified_date'),
+      PublishOnly('allow_decline'),
+      PublishOnly('allow_verify')
   ]
 
   default_description = "<ol>"\
@@ -192,9 +197,18 @@ class CycleTaskGroupObjectTask(
       (list) All objects related to the instance.
     """
     # pylint: disable=not-an-iterable
+    print("DEBUG related_objects")
     sources = [r.source for r in self.related_sources]
     destinations = [r.destination for r in self.related_destinations]
     return sources + destinations
+
+  @hybrid_property
+  def allow_decline(self):
+    return True
+
+  @hybrid_property
+  def allow_verify(self):
+    return False
 
   @classmethod
   def _filter_by_cycle(cls, predicate):
@@ -208,6 +222,8 @@ class CycleTaskGroupObjectTask(
       An sqlalchemy query that evaluates to true or false and can be used in
       filtering cycle tasks by related cycles.
     """
+    print("DEBUG _filter_by_cycle")
+
     return Cycle.query.filter(
         (Cycle.id == cls.cycle_id) &
         (predicate(Cycle.slug) | predicate(Cycle.title))
@@ -225,6 +241,7 @@ class CycleTaskGroupObjectTask(
       An sqlalchemy query that evaluates to true or false and can be used in
       filtering cycle tasks by related cycle task groups.
     """
+    print("DEBUG _filter_by_cycle_task_group")
     return CycleTaskGroup.query.filter(
         (CycleTaskGroup.id == cls.cycle_id) &
         (predicate(CycleTaskGroup.slug) | predicate(CycleTaskGroup.title))
@@ -241,16 +258,35 @@ class CycleTaskGroupObjectTask(
     Returns:
       a query object with cycle_task_entries added to joined load options.
     """
+
+    print("DEBUG CycleTaskGroupObjectTask . eager_query")
     query = super(CycleTaskGroupObjectTask, cls).eager_query()
-    return query.options(
+    print("DEBUG query", query)
+    print(query.column_descriptions)
+    # ones_column = sql.literal_column('true', type_=None)
+
+    result = query.options(
         orm.joinedload('cycle')
            .joinedload('workflow')
            .undefer_group('Workflow_complete'),
         orm.joinedload('cycle_task_entries'),
     )
+    print("DEBUG result", result)
+    print("DEBUG result", result.column_descriptions)
+
+    sq=str(query)
+    print(sq.replace(',', ',\n'))
+    print('- query count', query.count())
+    print('*'*80)
+    sr = str(result)
+    print(sr.replace(',', ',\n'))
+    print('- result count', query.count())
+    # pdb.set_trace()
+    return result
 
   @classmethod
   def indexed_query(cls):
+    print("DEBUG indexed_query")
     return super(CycleTaskGroupObjectTask, cls).indexed_query().options(
         orm.Load(cls).load_only(
             "end_date",
@@ -303,6 +339,7 @@ class CycleTaskable(object):
   def cycle_task_group_object_tasks(self):
     """ Lists all the cycle tasks related to a certain object
     """
+    print("DEBUG CycleTaskable.indexed_query")
     sources = [r.CycleTaskGroupObjectTask_source
                for r in self.related_sources
                if r.CycleTaskGroupObjectTask_source is not None]
@@ -313,6 +350,7 @@ class CycleTaskable(object):
 
   @classmethod
   def eager_query(cls):
+    print("DEBUG CycleTaskable.eager_query")
     query = super(CycleTaskable, cls).eager_query()
     return query.options(
         orm.subqueryload('related_sources')
