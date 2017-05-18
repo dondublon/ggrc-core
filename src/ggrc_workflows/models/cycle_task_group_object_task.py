@@ -6,10 +6,11 @@
 
 from sqlalchemy import orm
 from sqlalchemy.ext.associationproxy import association_proxy
-# from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from ggrc import db
+from ggrc.models import relationship
 from ggrc.models.computed_property import computed_property
 from ggrc.models.mixins import Base
 from ggrc.models.mixins import Described
@@ -206,9 +207,33 @@ class CycleTaskGroupObjectTask(
   #def logged_equal_to_contact(self):
   #  return
 
-  @hybrid_property
+  @declared_attr
   def allow_decline(self):
-    return get_current_user_id() == self.contact_id
+    # Assignee for a task logged id
+    # task_id_ok = get_current_user_id() == self.contact_id
+    from ggrc_workflows.models.workflow_person import WorkflowPerson
+    from ggrc_workflows.models.workflow import Workflow
+    from ggrc_workflows.models.task_group_task import TaskGroupTask
+    from ggrc_workflows.models.task_group import TaskGroup
+    rel = relationship.Relationship
+
+
+    r1 = db.relationship(
+        TaskGroupTask,
+        primaryjoin=lambda : self.task_group_task_id == TaskGroupTask.id,
+    #     #secondary=rel.__table__,
+        # secondaryjoin=lambda: WorkflowPerson.id == assignee_id,
+         viewonly=True
+    )
+
+    r2 = db.relationship(
+         r1,
+    #     primaryjoin=lambda : r1
+    )
+
+    # pdb.set_trace()
+
+    return r1
 
   @hybrid_property
   def allow_verify(self):
@@ -274,17 +299,11 @@ class CycleTaskGroupObjectTask(
            .joinedload('workflow')
            .undefer_group('Workflow_complete'),
         orm.joinedload('cycle_task_entries'),
+        orm.subqueryload("allow_decline").undefer_group("allow_decline")
     )
     print("DEBUG result", result)
     print("DEBUG result", result.column_descriptions)
 
-    sq=str(query)
-    print(sq.replace(',', ',\n'))
-    print('- query count', query.count())
-    print('*'*80)
-    sr = str(result)
-    print(sr.replace(',', ',\n'))
-    print('- result count', query.count())
     # pdb.set_trace()
     return result
 
