@@ -4,7 +4,7 @@
 """Module containing Cycle tasks.
 """
 
-from sqlalchemy import orm, and_
+from sqlalchemy import orm, and_, select
 from sqlalchemy.orm import foreign, remote
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
@@ -279,12 +279,29 @@ class CycleTaskGroupObjectTask(
     # region variant 3
     from ggrc_workflows.models.workflow_person import WorkflowPerson
     from ggrc_workflows.models.workflow import Workflow
-    from ggrc_workflows.models.task_group_task import TaskGroupTask
     from ggrc_workflows.models.task_group import TaskGroup
+    from ggrc_workflows.models.task_group_task import TaskGroupTask
 
-    tgt_query = TaskGroupTask.query.filter(TaskGroupTask.id == self.task_group_task_id)
+    tgt_query = TaskGroupTask.query.filter(TaskGroupTask.id == self.task_group_task_id) \
+      .join(TaskGroup, TaskGroupTask.task_group_id==TaskGroup.id) \
+      .join(Workflow, TaskGroup.workflow_id==Workflow.id) \
+      .join(WorkflowPerson, Workflow.id==WorkflowPerson.workflow_id)
+    print (" * DEBUG tgt query")
+    print (str(tgt_query).replace(',', ',\n'))
+
+    person_query = WorkflowPerson.query \
+      .join(Workflow, Workflow.id==WorkflowPerson.workflow_id) \
+      .join(TaskGroup, TaskGroup.workflow_id==Workflow.id) \
+      .join(TaskGroupTask, and_(TaskGroupTask.task_group_id==TaskGroup.id, TaskGroupTask.id == self.task_group_task_id))
+    print("* DEBUG person query")
+    print(str(person_query))
+
+    person_select = select([WorkflowPerson.person_id, Workflow, TaskGroup, TaskGroupTask]) \
+      .where(and_(Workflow.id==WorkflowPerson.workflow_id, TaskGroup.workflow_id==Workflow.id, TaskGroupTask.task_group_id==TaskGroup.id, TaskGroupTask.id == self.task_group_task_id))
+    print("* DEBUG person select")
+    print(str(person_select))
+
     return assignee_here
-
 
   @classmethod
   def _filter_by_cycle(cls, predicate):
