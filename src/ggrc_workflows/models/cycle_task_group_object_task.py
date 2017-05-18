@@ -4,7 +4,8 @@
 """Module containing Cycle tasks.
 """
 
-from sqlalchemy import orm
+from sqlalchemy import orm, and_
+from sqlalchemy.orm import foreign, remote
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -217,6 +218,23 @@ class CycleTaskGroupObjectTask(
     from ggrc_workflows.models.task_group import TaskGroup
     rel = relationship.Relationship
 
+    r_all = db.relationship(
+      TaskGroupTask,
+        #secondary="""join(TaskGroup, Workflow,
+        #            TaskGroup.workflow_id == Workflow.id)""",
+        #            # join(WorkflowPerson, WorkflowPerson.id==Workflow.person_id)
+
+
+        #primaryjoin=and_(self.task_group_task_id == foreign(TaskGroupTask.id),
+        #            TaskGroupTask.task_group_id == foreign(TaskGroup.id)),
+        primaryjoin=self.task_group_task_id == foreign(TaskGroupTask.id),  # works
+        # primaryjoin = TaskGroupTask.task_group_id == remote(TaskGroup.id),
+
+      #secondaryjoin="""Workflow.id == TaskGroup.workflow_id """,
+        uselist=False,
+        viewonly=True
+
+    )
 
     r1 = db.relationship(
         TaskGroupTask,
@@ -232,14 +250,19 @@ class CycleTaskGroupObjectTask(
         viewonly=True
     )
 
-    # r3 = db.relationship(
-    #     Workflow,
-    #     primaryjoin=lambda : r2.work
-    # )
+    r3 = db.relationship(
+        Workflow,
+        primaryjoin=lambda : r2.workflow_id == Workflow.id
+    )
+
+    r4 = db.relationship(
+        WorkflowPerson,
+        primaryjoin=lambda : r3.workflow_person_id == WorkflowPerson.id
+    )
 
     # pdb.set_trace()
 
-    return r1
+    return r_all
 
   @hybrid_property
   def allow_verify(self):
