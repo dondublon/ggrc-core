@@ -223,13 +223,19 @@ class CycleTaskGroupObjectTask(
         primaryjoin=lambda : self.task_group_task_id == TaskGroupTask.id,
     #     #secondary=rel.__table__,
         # secondaryjoin=lambda: WorkflowPerson.id == assignee_id,
-         viewonly=True
+        viewonly=True
     )
 
     r2 = db.relationship(
-         r1,
-    #     primaryjoin=lambda : r1
+        TaskGroup,
+        primaryjoin=lambda : r1.task_group_id == TaskGroup.id,
+        viewonly=True
     )
+
+    # r3 = db.relationship(
+    #     Workflow,
+    #     primaryjoin=lambda : r2.work
+    # )
 
     # pdb.set_trace()
 
