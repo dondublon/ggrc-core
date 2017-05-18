@@ -218,6 +218,7 @@ class CycleTaskGroupObjectTask(
     from ggrc_workflows.models.task_group import TaskGroup
     rel = relationship.Relationship
 
+    # region variant 2
     r_all = db.relationship(
       TaskGroupTask,
         #secondary="""join(TaskGroup, Workflow,
@@ -235,6 +236,10 @@ class CycleTaskGroupObjectTask(
         viewonly=True
 
     )
+    # endregion
+
+
+    # region variant 1
 
     r1 = db.relationship(
         TaskGroupTask,
@@ -243,7 +248,7 @@ class CycleTaskGroupObjectTask(
         # secondaryjoin=lambda: WorkflowPerson.id == assignee_id,
         viewonly=True
     )
-
+    # not working:
     r2 = db.relationship(
         TaskGroup,
         primaryjoin=lambda : r1.task_group_id == TaskGroup.id,
@@ -252,21 +257,34 @@ class CycleTaskGroupObjectTask(
 
     r3 = db.relationship(
         Workflow,
-        primaryjoin=lambda : r2.workflow_id == Workflow.id
+        primaryjoin=lambda : r2.workflow_id == Workflow.id,
+        viewonly=True
     )
 
-    r4 = db.relationship(
-        WorkflowPerson,
-        primaryjoin=lambda : r3.workflow_person_id == WorkflowPerson.id
-    )
+    # r4 = db.relationship(
+    #     WorkflowPerson,
+    #     primaryjoin=lambda : r3.workflow_person_id == WorkflowPerson.id,
+    #     viewonly = True
+    # )
+    # endregion
+
 
     # pdb.set_trace()
 
-    return r_all
+    return r1
 
   @hybrid_property
   def allow_verify(self):
-    return get_current_user_id() == self.contact_id
+    assignee_here = get_current_user_id() == self.contact_id
+    # region variant 3
+    from ggrc_workflows.models.workflow_person import WorkflowPerson
+    from ggrc_workflows.models.workflow import Workflow
+    from ggrc_workflows.models.task_group_task import TaskGroupTask
+    from ggrc_workflows.models.task_group import TaskGroup
+
+    tgt_query = TaskGroupTask.query.filter(TaskGroupTask.id == self.task_group_task_id)
+    return assignee_here
+
 
   @classmethod
   def _filter_by_cycle(cls, predicate):
@@ -340,7 +358,11 @@ class CycleTaskGroupObjectTask(
   def indexed_query(cls):
     print("DEBUG indexed_query")
     return super(CycleTaskGroupObjectTask, cls).indexed_query().options(
-        orm.Load(cls).load_only(
+        #orm.subqueryload(
+        #  "allow_decline"
+        #  ).load_only("id"),
+
+      orm.Load(cls).load_only(
             "end_date",
             "start_date",
             "created_at",
