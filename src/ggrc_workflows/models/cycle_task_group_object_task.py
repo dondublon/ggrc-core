@@ -8,10 +8,8 @@ from sqlalchemy import orm, and_, select
 from sqlalchemy.orm import foreign, remote
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.ext.hybrid import hybrid_property
 
 from ggrc import db
-from ggrc.models import relationship
 from ggrc.builder import simple_property
 from ggrc.models.computed_property import computed_property
 from ggrc.models.mixins import Base
@@ -129,7 +127,6 @@ class CycleTaskGroupObjectTask(
   def cycle_task_objects_for_cache(self):
     """Changing task state must invalidate `workflow_state` on objects
     """
-    print("DEBUG cycle_task_objects_for_cache")
     return [(object_.__class__.__name__, object_.id) for object_ in
             self.related_objects]  # pylint: disable=not-an-iterable
 
@@ -202,7 +199,6 @@ class CycleTaskGroupObjectTask(
       (list) All objects related to the instance.
     """
     # pylint: disable=not-an-iterable
-    print("DEBUG related_objects")
     sources = [r.source for r in self.related_sources]
     destinations = [r.destination for r in self.related_destinations]
     return sources + destinations
@@ -226,10 +222,14 @@ class CycleTaskGroupObjectTask(
 
   @simple_property
   def allow_decline(self):
+    return self.logged_wfo_or_assignee()
+
+  def logged_wfo_or_assignee(self):
+      """Workflow owner if assignee logged in.
+       Used in "allow_decline" and "allow_verify"
+      """
       logged_assignee = get_current_user_id() == self.contact_id
       user_role = self.user_role
-      print("DEBUG user_role")
-      print(user_role)
       if len(user_role) == 0:
           return logged_assignee
       else: # two or more
@@ -237,11 +237,9 @@ class CycleTaskGroupObjectTask(
           logged_workflow_owner = get_current_user_id() in persons_ids
           return logged_assignee or logged_workflow_owner
 
-  @hybrid_property
+  @simple_property
   def allow_verify(self):
-    assignee_here = get_current_user_id() == self.contact_id
-
-    return assignee_here
+    return self.logged_wfo_or_assignee()
 
   @classmethod
   def _filter_by_cycle(cls, predicate):
@@ -255,8 +253,6 @@ class CycleTaskGroupObjectTask(
       An sqlalchemy query that evaluates to true or false and can be used in
       filtering cycle tasks by related cycles.
     """
-    print("DEBUG _filter_by_cycle")
-
     return Cycle.query.filter(
         (Cycle.id == cls.cycle_id) &
         (predicate(Cycle.slug) | predicate(Cycle.title))
@@ -274,7 +270,6 @@ class CycleTaskGroupObjectTask(
       An sqlalchemy query that evaluates to true or false and can be used in
       filtering cycle tasks by related cycle task groups.
     """
-    print("DEBUG _filter_by_cycle_task_group")
     return CycleTaskGroup.query.filter(
         (CycleTaskGroup.id == cls.cycle_id) &
         (predicate(CycleTaskGroup.slug) | predicate(CycleTaskGroup.title))
@@ -292,10 +287,7 @@ class CycleTaskGroupObjectTask(
       a query object with cycle_task_entries added to joined load options.
     """
 
-    print("DEBUG CycleTaskGroupObjectTask . eager_query")
     query = super(CycleTaskGroupObjectTask, cls).eager_query()
-    print("DEBUG query", query)
-    print(query.column_descriptions)
     # ones_column = sql.literal_column('true', type_=None)
 
     result = query.options(
@@ -304,19 +296,11 @@ class CycleTaskGroupObjectTask(
            .undefer_group('Workflow_complete'),
         orm.joinedload('cycle_task_entries')
     )
-    print("DEBUG result", result)
-    print("DEBUG result", result.column_descriptions)
-
-    # pdb.set_trace()
     return result
 
   @classmethod
   def indexed_query(cls):
-    print("DEBUG indexed_query")
     return super(CycleTaskGroupObjectTask, cls).indexed_query().options(
-        #orm.subqueryload(
-        #  "allow_decline"
-        #  ).load_only("id"),
 
       orm.Load(cls).load_only(
             "end_date",
@@ -369,7 +353,6 @@ class CycleTaskable(object):
   def cycle_task_group_object_tasks(self):
     """ Lists all the cycle tasks related to a certain object
     """
-    print("DEBUG CycleTaskable.indexed_query")
     sources = [r.CycleTaskGroupObjectTask_source
                for r in self.related_sources
                if r.CycleTaskGroupObjectTask_source is not None]
@@ -380,7 +363,6 @@ class CycleTaskable(object):
 
   @classmethod
   def eager_query(cls):
-    print("DEBUG CycleTaskable.eager_query")
     query = super(CycleTaskable, cls).eager_query()
     return query.options(
         orm.subqueryload('related_sources')
