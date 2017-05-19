@@ -232,7 +232,7 @@ class CycleTaskGroupObjectTask(
       user_role = self.user_role
       if len(user_role) == 0:
           return logged_assignee
-      else: # two or more
+      else: # one or more
           persons_ids = [ur.person_id for ur in user_role]
           logged_workflow_owner = get_current_user_id() in persons_ids
           return logged_assignee or logged_workflow_owner
