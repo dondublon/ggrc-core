@@ -12,6 +12,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from ggrc import db
 from ggrc.models import relationship
+from ggrc.builder import simple_property
 from ggrc.models.computed_property import computed_property
 from ggrc.models.mixins import Base
 from ggrc.models.mixins import Described
@@ -85,6 +86,7 @@ class CycleTaskGroupObjectTask(
       MultipleSubpropertyFullTextAttr("comments",
                                       "cycle_task_entries",
                                       ["description"]),
+      FullTextAttr("allow_decline", "allow_decline")
   ]
 
   AUTO_REINDEX_RULES = [
@@ -209,97 +211,35 @@ class CycleTaskGroupObjectTask(
   #  return
 
   @declared_attr
-  def allow_decline(self):
+  def user_role(self):
     # Assignee for a task logged id
     # task_id_ok = get_current_user_id() == self.contact_id
-    from ggrc_workflows.models.workflow_person import WorkflowPerson
-    from ggrc_workflows.models.workflow import Workflow
-    from ggrc_workflows.models.task_group_task import TaskGroupTask
-    from ggrc_workflows.models.task_group import TaskGroup
-    rel = relationship.Relationship
+    from ggrc_basic_permissions.models import UserRole
 
-    # region variant 2
-    r_all = db.relationship(
-      TaskGroupTask,
-        #secondary="""join(TaskGroup, Workflow,
-        #            TaskGroup.workflow_id == Workflow.id)""",
-        #            # join(WorkflowPerson, WorkflowPerson.id==Workflow.person_id)
-
-
-        #primaryjoin=and_(self.task_group_task_id == foreign(TaskGroupTask.id),
-        #            TaskGroupTask.task_group_id == foreign(TaskGroup.id)),
-        primaryjoin=self.task_group_task_id == foreign(TaskGroupTask.id),  # works
-        # primaryjoin = TaskGroupTask.task_group_id == remote(TaskGroup.id),
-
-      #secondaryjoin="""Workflow.id == TaskGroup.workflow_id """,
-        uselist=False,
-        viewonly=True
-
-    )
-    # endregion
-
-
-    # region variant 1
-
-    r1 = db.relationship(
-        TaskGroupTask,
-        primaryjoin=lambda : self.task_group_task_id == TaskGroupTask.id,
-    #     #secondary=rel.__table__,
-        # secondaryjoin=lambda: WorkflowPerson.id == assignee_id,
-        viewonly=True
-    )
-    # not working:
-    r2 = db.relationship(
-        TaskGroup,
-        primaryjoin=lambda : r1.task_group_id == TaskGroup.id,
-        viewonly=True
+    # relationship to user role
+    r_ur = db.relationship(
+        UserRole,
+        primaryjoin=lambda : self.context_id==foreign(UserRole.context_id)
     )
 
-    r3 = db.relationship(
-        Workflow,
-        primaryjoin=lambda : r2.workflow_id == Workflow.id,
-        viewonly=True
-    )
+    return r_ur
 
-    # r4 = db.relationship(
-    #     WorkflowPerson,
-    #     primaryjoin=lambda : r3.workflow_person_id == WorkflowPerson.id,
-    #     viewonly = True
-    # )
-    # endregion
-
-
-    # pdb.set_trace()
-
-    return r1
+  @simple_property
+  def allow_decline(self):
+      logged_assignee = get_current_user_id() == self.contact_id
+      user_role = self.user_role
+      print("DEBUG user_role")
+      print(user_role)
+      if len(user_role) == 0:
+          return logged_assignee
+      else: # two or more
+          persons_ids = [ur.person_id for ur in user_role]
+          logged_workflow_owner = get_current_user_id() in persons_ids
+          return logged_assignee or logged_workflow_owner
 
   @hybrid_property
   def allow_verify(self):
     assignee_here = get_current_user_id() == self.contact_id
-    # region variant 3
-    from ggrc_workflows.models.workflow_person import WorkflowPerson
-    from ggrc_workflows.models.workflow import Workflow
-    from ggrc_workflows.models.task_group import TaskGroup
-    from ggrc_workflows.models.task_group_task import TaskGroupTask
-
-    tgt_query = TaskGroupTask.query.filter(TaskGroupTask.id == self.task_group_task_id) \
-      .join(TaskGroup, TaskGroupTask.task_group_id==TaskGroup.id) \
-      .join(Workflow, TaskGroup.workflow_id==Workflow.id) \
-      .join(WorkflowPerson, Workflow.id==WorkflowPerson.workflow_id)
-    print (" * DEBUG tgt query")
-    print (str(tgt_query).replace(',', ',\n'))
-
-    person_query = WorkflowPerson.query \
-      .join(Workflow, Workflow.id==WorkflowPerson.workflow_id) \
-      .join(TaskGroup, TaskGroup.workflow_id==Workflow.id) \
-      .join(TaskGroupTask, and_(TaskGroupTask.task_group_id==TaskGroup.id, TaskGroupTask.id == self.task_group_task_id))
-    print("* DEBUG person query")
-    print(str(person_query))
-
-    person_select = select([WorkflowPerson.person_id, Workflow, TaskGroup, TaskGroupTask]) \
-      .where(and_(Workflow.id==WorkflowPerson.workflow_id, TaskGroup.workflow_id==Workflow.id, TaskGroupTask.task_group_id==TaskGroup.id, TaskGroupTask.id == self.task_group_task_id))
-    print("* DEBUG person select")
-    print(str(person_select))
 
     return assignee_here
 
@@ -362,8 +302,7 @@ class CycleTaskGroupObjectTask(
         orm.joinedload('cycle')
            .joinedload('workflow')
            .undefer_group('Workflow_complete'),
-        orm.joinedload('cycle_task_entries'),
-        orm.subqueryload("allow_decline").undefer_group("allow_decline")
+        orm.joinedload('cycle_task_entries')
     )
     print("DEBUG result", result)
     print("DEBUG result", result.column_descriptions)
