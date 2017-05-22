@@ -84,7 +84,8 @@ class CycleTaskGroupObjectTask(
       MultipleSubpropertyFullTextAttr("comments",
                                       "cycle_task_entries",
                                       ["description"]),
-      FullTextAttr("allow_decline", "allow_decline")
+      FullTextAttr("allow_decline", "allow_decline"),
+      FullTextAttr("allow_verify", "allow_verify")
   ]
 
   AUTO_REINDEX_RULES = [
@@ -302,7 +303,7 @@ class CycleTaskGroupObjectTask(
   def indexed_query(cls):
     return super(CycleTaskGroupObjectTask, cls).indexed_query().options(
 
-      orm.Load(cls).load_only(
+        orm.Load(cls).load_only(
             "end_date",
             "start_date",
             "created_at",
