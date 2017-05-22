@@ -5,9 +5,12 @@
 """
 
 from sqlalchemy import orm
+from sqlalchemy.orm import foreign
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.declarative import declared_attr
 
 from ggrc import db
+from ggrc.builder import simple_property
 from ggrc.models.computed_property import computed_property
 from ggrc.models.mixins import Base
 from ggrc.models.mixins import Described
@@ -28,6 +31,7 @@ from ggrc.fulltext.attributes import (
     DateFullTextAttr
 )
 from ggrc.fulltext.mixin import Indexed, ReindexRule
+from ggrc.login import get_current_user_id
 
 
 class CycleTaskGroupObjectTask(
@@ -80,6 +84,7 @@ class CycleTaskGroupObjectTask(
       MultipleSubpropertyFullTextAttr("comments",
                                       "cycle_task_entries",
                                       ["description"]),
+      FullTextAttr("allow_decline", "allow_decline")
   ]
 
   AUTO_REINDEX_RULES = [
@@ -136,7 +141,9 @@ class CycleTaskGroupObjectTask(
       'selected_response_options',
       PublishOnly('object_approval'),
       PublishOnly('finished_date'),
-      PublishOnly('verified_date')
+      PublishOnly('verified_date'),
+      PublishOnly('allow_decline'),
+      PublishOnly('allow_verify')
   ]
 
   default_description = "<ol>"\
@@ -196,6 +203,44 @@ class CycleTaskGroupObjectTask(
     destinations = [r.destination for r in self.related_destinations]
     return sources + destinations
 
+  #def logged_equal_to_contact(self):
+  #  return
+
+  @declared_attr
+  def user_role(self):
+    # Assignee for a task logged id
+    # task_id_ok = get_current_user_id() == self.contact_id
+    from ggrc_basic_permissions.models import UserRole
+
+    # relationship to user role
+    r_ur = db.relationship(
+        UserRole,
+        primaryjoin=lambda : self.context_id==foreign(UserRole.context_id)
+    )
+
+    return r_ur
+
+  @simple_property
+  def allow_decline(self):
+    return self.logged_wfo_or_assignee()
+
+  def logged_wfo_or_assignee(self):
+      """Workflow owner if assignee logged in.
+       Used in "allow_decline" and "allow_verify"
+      """
+      logged_assignee = get_current_user_id() == self.contact_id
+      user_role = self.user_role
+      if len(user_role) == 0:
+          return logged_assignee
+      else: # one or more
+          persons_ids = [ur.person_id for ur in user_role]
+          logged_workflow_owner = get_current_user_id() in persons_ids
+          return logged_assignee or logged_workflow_owner
+
+  @simple_property
+  def allow_verify(self):
+    return self.logged_wfo_or_assignee()
+
   @classmethod
   def _filter_by_cycle(cls, predicate):
     """Get query that filters cycle tasks by related cycles.
@@ -241,18 +286,23 @@ class CycleTaskGroupObjectTask(
     Returns:
       a query object with cycle_task_entries added to joined load options.
     """
+
     query = super(CycleTaskGroupObjectTask, cls).eager_query()
-    return query.options(
+    # ones_column = sql.literal_column('true', type_=None)
+
+    result = query.options(
         orm.joinedload('cycle')
            .joinedload('workflow')
            .undefer_group('Workflow_complete'),
-        orm.joinedload('cycle_task_entries'),
+        orm.joinedload('cycle_task_entries')
     )
+    return result
 
   @classmethod
   def indexed_query(cls):
     return super(CycleTaskGroupObjectTask, cls).indexed_query().options(
-        orm.Load(cls).load_only(
+
+      orm.Load(cls).load_only(
             "end_date",
             "start_date",
             "created_at",
