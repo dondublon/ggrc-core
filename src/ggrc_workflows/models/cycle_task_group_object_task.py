@@ -4,8 +4,8 @@
 """Module containing Cycle tasks.
 """
 
-from sqlalchemy import orm, and_, select
-from sqlalchemy.orm import foreign, remote
+from sqlalchemy import orm
+from sqlalchemy.orm import foreign
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
 
@@ -32,7 +32,7 @@ from ggrc.fulltext.attributes import (
 )
 from ggrc.fulltext.mixin import Indexed, ReindexRule
 from ggrc.login import get_current_user_id
-import pdb
+
 
 class CycleTaskGroupObjectTask(
         WithContact, Stateful, Timeboxed, Relatable, Notifiable,
