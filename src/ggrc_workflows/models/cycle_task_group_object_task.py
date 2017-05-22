@@ -287,22 +287,19 @@ class CycleTaskGroupObjectTask(
     Returns:
       a query object with cycle_task_entries added to joined load options.
     """
-
     query = super(CycleTaskGroupObjectTask, cls).eager_query()
     # ones_column = sql.literal_column('true', type_=None)
 
-    result = query.options(
+    return query.options(
         orm.joinedload('cycle')
            .joinedload('workflow')
            .undefer_group('Workflow_complete'),
         orm.joinedload('cycle_task_entries')
     )
-    return result
 
   @classmethod
   def indexed_query(cls):
     return super(CycleTaskGroupObjectTask, cls).indexed_query().options(
-
         orm.Load(cls).load_only(
             "end_date",
             "start_date",
