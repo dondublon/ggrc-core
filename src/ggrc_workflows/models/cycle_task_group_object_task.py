@@ -288,8 +288,6 @@ class CycleTaskGroupObjectTask(
       a query object with cycle_task_entries added to joined load options.
     """
     query = super(CycleTaskGroupObjectTask, cls).eager_query()
-    # ones_column = sql.literal_column('true', type_=None)
-
     return query.options(
         orm.joinedload('cycle')
            .joinedload('workflow')
