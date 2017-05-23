@@ -119,6 +119,9 @@ class TestWorkflowsApiPost(BaseWorkflowTestCase):
     self.generator.api.set_user(default_user)
     _, wf_gen = self.generator.generate_workflow(weekly_wf)
     _, task_gr = self.generator.generate_task_group(wf_gen)
+    self.generator.generate_task_group_task(task_gr)
+
+    self.generator.activate_workflow(wf_gen)
 
     tgt_found = Tgt.query.filter(Tgt.task_group_id == task_gr.id)
     # tgo_found = TaskGroupObject.query.filter(
