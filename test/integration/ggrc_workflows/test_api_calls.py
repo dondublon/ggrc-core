@@ -9,14 +9,15 @@ from ggrc_workflows.models import TaskGroup
 from ggrc_workflows.models import Workflow
 
 from integration.ggrc.api_helper import Api
-from integration.ggrc_workflows.workflow_cycle_calculator.base_workflow_test_case import \
-  BaseWorkflowTestCase
+from integration.ggrc_workflows.workflow_cycle_calculator.base_workflow_test_case \
+  import BaseWorkflowTestCase
 
 # for buttons test:
 from ggrc import login  # for get_current_user_id, mock it.
 from ggrc.models import Person
-from ggrc_workflows.models.cycle_task_group_object_task import CycleTaskGroupObjectTask
-from ggrc_workflows.models.task_group_task import TaskGroupTask
+from ggrc_workflows.models.cycle_task_group_object_task import \
+  CycleTaskGroupObjectTask as Ctgot
+from ggrc_workflows.models.task_group_task import TaskGroupTask as Tgt
 
 
 class TestWorkflowsApiPost(BaseWorkflowTestCase):
@@ -118,20 +119,13 @@ class TestWorkflowsApiPost(BaseWorkflowTestCase):
     self.generator.api.set_user(default_user)
     _, wf_gen = self.generator.generate_workflow(weekly_wf)
     _, task_gr = self.generator.generate_task_group(wf_gen)
-    # _, tgt =
-    # self.generator.generate_task_group_task(task_gr)
-    # _, tgo = self.generator.generate_task_group_object(tgt)  # crash
 
-    # _, awf =
-    # self.generator.activate_workflow(wf_gen)
-
-    tgt_found = TaskGroupTask.query.filter(
-                        TaskGroupTask.task_group_id == task_gr.id)
+    tgt_found = Tgt.query.filter(Tgt.task_group_id == task_gr.id)
     # tgo_found = TaskGroupObject.query.filter(
     #   TaskGroupObject.task_group_id == task_gr.id)
     tgt_obj = tgt_found.one()
-    cycle_task_found = CycleTaskGroupObjectTask.query.filter(
-                        CycleTaskGroupObjectTask.task_group_task_id == tgt_obj.id)
+    cycle_task_found = Ctgot.query.filter(
+        Ctgot.task_group_task_id == tgt_obj.id)
     ct_obj = cycle_task_found.one()
 
     old_get_user_id = login.get_current_user_id
