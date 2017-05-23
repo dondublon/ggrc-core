@@ -232,11 +232,12 @@ class CycleTaskGroupObjectTask(
     logged_assignee = get_current_user_id() == self.contact_id
     user_role = list(self.user_role)  # list() - for suppress pylint warnings.
     if len(user_role) == 0:
-        return logged_assignee
+      result = logged_assignee
     else:  # one or more
-        persons_ids = [ur.person_id for ur in user_role]
-        logged_workflow_owner = get_current_user_id() in persons_ids
-        return logged_assignee or logged_workflow_owner
+      persons_ids = [ur.person_id for ur in user_role]
+      logged_workflow_owner = get_current_user_id() in persons_ids
+      result = logged_assignee or logged_workflow_owner
+    return result
 
   @simple_property
   def allow_verify(self):
