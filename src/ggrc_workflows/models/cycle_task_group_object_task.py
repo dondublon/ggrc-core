@@ -25,10 +25,11 @@ from ggrc.models.relationship import Relatable
 from ggrc.models.types import JsonType
 from ggrc_workflows.models.cycle import Cycle
 from ggrc_workflows.models.cycle_task_group import CycleTaskGroup
-from ggrc.fulltext.attributes import \
-  FullTextAttr, \
-  MultipleSubpropertyFullTextAttr, \
-  DateFullTextAttr
+from ggrc.fulltext.attributes import (
+    FullTextAttr,
+    MultipleSubpropertyFullTextAttr,
+    DateFullTextAttr
+)
 
 from ggrc.fulltext.mixin import Indexed, ReindexRule
 from ggrc.login import get_current_user_id
