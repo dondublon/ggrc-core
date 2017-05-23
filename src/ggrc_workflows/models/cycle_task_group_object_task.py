@@ -25,11 +25,8 @@ from ggrc.models.relationship import Relatable
 from ggrc.models.types import JsonType
 from ggrc_workflows.models.cycle import Cycle
 from ggrc_workflows.models.cycle_task_group import CycleTaskGroup
-from ggrc.fulltext.attributes import (
-    FullTextAttr,
-    MultipleSubpropertyFullTextAttr,
-    DateFullTextAttr
-)
+from ggrc.fulltext.attributes import FullTextAttr, MultipleSubpropertyFullTextAttr, DateFullTextAttr
+
 from ggrc.fulltext.mixin import Indexed, ReindexRule
 from ggrc.login import get_current_user_id
 
@@ -204,12 +201,10 @@ class CycleTaskGroupObjectTask(
     destinations = [r.destination for r in self.related_destinations]
     return sources + destinations
 
-  #def logged_equal_to_contact(self):
-  #  return
-
   @declared_attr
   def user_role(self):
-    """Return relationship to UserRole, for the current task, using link - context_id."""
+    """Return relationship to UserRole, for the current task,
+    using link - context_id."""
     from ggrc_basic_permissions.models import UserRole
 
     # relationship to user role
@@ -231,7 +226,8 @@ class CycleTaskGroupObjectTask(
     """
     logged_assignee = get_current_user_id() == self.contact_id
     user_role = list(self.user_role)  # list() - for suppress pylint warnings.
-    if len(user_role) == 0:
+    empty = len(user_role) == 0
+    if empty:
       result = logged_assignee
     else:  # one or more
       persons_ids = [ur.person_id for ur in user_role]
