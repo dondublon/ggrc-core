@@ -76,6 +76,9 @@ class TestWorkflowsApiPost(BaseWorkflowTestCase):
 
   def test_cycle_task_button_keys(self):
     from integration.ggrc_workflows.models import factories
+    from ggrc_workflows.models.task_group_object import TaskGroupObject
+    from ggrc_workflows.models.task_group_task import TaskGroupTask
+    from ggrc_workflows.models.cycle_task_group_object_task import CycleTaskGroupObjectTask
     # region Create Workflow and Task Group like as previous test.
 
     weekly_wf = {
@@ -109,16 +112,38 @@ class TestWorkflowsApiPost(BaseWorkflowTestCase):
     _, wf_gen = self.generator.generate_workflow(weekly_wf)
     wf_id = wf_gen.id
     _, tg = self.generator.generate_task_group(wf_gen)
-    _, awf = self.generator.activate_workflow(wf_gen)
+
     # my:
     _, tgt = self.generator.generate_task_group_task(tg)
-    # _, tgo = self.generator.generate_task_group_object(tg)  # crash
-    _, cycle = self.generator.generate_cycle(wf_gen)
+    # _, tgo = self.generator.generate_task_group_object(tgt)  # crash
+
+    _, awf = self.generator.activate_workflow(wf_gen)
+    print ("Tgt", tgt)
+
+    tgt_found = TaskGroupTask.query.filter(TaskGroupTask.task_group_id == tg.id)
+    tgo_found = TaskGroupObject.query.filter(TaskGroupObject.task_group_id == tg.id)
+    print("count tgt found", tgt_found.count())
+    print("count tgo found", tgo_found.count())  # zero because not invoked. not invoked because crash.
+    tgt_obj = tgt_found.one()
+    cycle_task_found = CycleTaskGroupObjectTask.query.filter(CycleTaskGroupObjectTask.task_group_task_id==tgt_obj.id)
+    print ("cycle_task_found ", cycle_task_found.count())
+    ct_obj = cycle_task_found.one()
+
+    for itm in [wf_gen, tg, tgt, ct_obj]:
+      print ("\ncontext id gen", itm.context_id)
+
+
     # end region
 
     # using factories
     wf_fac = factories.WorkflowFactory()
-    print ("wf fac", wf_fac)
+    tg_fac = factories.TaskGroupFactory(workflow_id=wf_fac.id)
+    tgo_fac = factories.TaskGroupObjectFactory(task_group_id=tg_fac.id)
+    # cycle_fac = factories.CycleFactory(workflow_id=wf_fac.id)
+    # ctg_fac = factories.CycleTaskGroupFactory(cycle_id=cycle_fac.id) # no need
+    # ct_fac = factories.CycleTaskFactory(cycle_task_id=ctg_fac.id)  # no need
+    for itm in [wf_fac, tg_fac, tgo_fac]:
+      print ("\ncontext id fac", itm.context_id)
 
     # endregion
 
