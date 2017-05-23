@@ -13,11 +13,13 @@ from integration.ggrc_workflows.workflow_cycle_calculator import \
 from ggrc_workflows.models import TaskGroup
 from ggrc_workflows.models import Workflow
 # for buttons test:
-from ggrc import login  # for get_current_user_id, mock it.
-from ggrc.models import Person
 from ggrc_workflows.models.cycle_task_group_object_task import \
     CycleTaskGroupObjectTask as Ctgot
 from ggrc_workflows.models.task_group_task import TaskGroupTask as Tgt
+
+# for buttons test:
+from ggrc import login  # for get_current_user_id, mock it.
+from ggrc.models import Person
 
 
 class TestWorkflowsApiPost(base_workflow_test_case.BaseWorkflowTestCase):
