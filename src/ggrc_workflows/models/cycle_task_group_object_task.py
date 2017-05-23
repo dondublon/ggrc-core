@@ -209,37 +209,38 @@ class CycleTaskGroupObjectTask(
 
   @declared_attr
   def user_role(self):
-    # Assignee for a task logged id
-    # task_id_ok = get_current_user_id() == self.contact_id
+    """Return relationship to UserRole, for the current task, using link - context_id."""
     from ggrc_basic_permissions.models import UserRole
 
     # relationship to user role
     r_ur = db.relationship(
         UserRole,
-        primaryjoin=lambda : self.context_id==foreign(UserRole.context_id)
+        primaryjoin=lambda: self.context_id == foreign(UserRole.context_id)
     )
 
     return r_ur
 
   @simple_property
   def allow_decline(self):
+    """Current user allowed to decline task"""
     return self.logged_wfo_or_assignee()
 
   def logged_wfo_or_assignee(self):
-      """Workflow owner if assignee logged in.
-       Used in "allow_decline" and "allow_verify"
-      """
-      logged_assignee = get_current_user_id() == self.contact_id
-      user_role = self.user_role
-      if len(user_role) == 0:
-          return logged_assignee
-      else: # one or more
-          persons_ids = [ur.person_id for ur in user_role]
-          logged_workflow_owner = get_current_user_id() in persons_ids
-          return logged_assignee or logged_workflow_owner
+    """"Workflow owner if assignee logged in.
+    Used in "allow_decline" and "allow_verify"
+    """
+    logged_assignee = get_current_user_id() == self.contact_id
+    user_role = list(self.user_role)  # list() - for suppress pylint warnings.
+    if len(user_role) == 0:
+        return logged_assignee
+    else:  # one or more
+        persons_ids = [ur.person_id for ur in user_role]
+        logged_workflow_owner = get_current_user_id() in persons_ids
+        return logged_assignee or logged_workflow_owner
 
   @simple_property
   def allow_verify(self):
+    """Current user allowed to verify task"""
     return self.logged_wfo_or_assignee()
 
   @classmethod
@@ -290,8 +291,8 @@ class CycleTaskGroupObjectTask(
     query = super(CycleTaskGroupObjectTask, cls).eager_query()
     return query.options(
         orm.joinedload('cycle')
-           .joinedload('workflow')
-           .undefer_group('Workflow_complete'),
+        .joinedload('workflow')
+        .undefer_group('Workflow_complete'),
         orm.joinedload('cycle_task_entries')
     )
 
@@ -362,11 +363,11 @@ class CycleTaskable(object):
     query = super(CycleTaskable, cls).eager_query()
     return query.options(
         orm.subqueryload('related_sources')
-           .joinedload('CycleTaskGroupObjectTask_source')
-           .undefer_group('CycleTaskGroupObjectTask_complete')
-           .joinedload('cycle'),
+        .joinedload('CycleTaskGroupObjectTask_source')
+        .undefer_group('CycleTaskGroupObjectTask_complete')
+        .joinedload('cycle'),
         orm.subqueryload('related_destinations')
-           .joinedload('CycleTaskGroupObjectTask_destination')
-           .undefer_group('CycleTaskGroupObjectTask_complete')
-           .joinedload('cycle')
+        .joinedload('CycleTaskGroupObjectTask_destination')
+        .undefer_group('CycleTaskGroupObjectTask_complete')
+        .joinedload('cycle')
     )
