@@ -10,9 +10,6 @@ from ggrc_workflows.models import Workflow
 
 from integration.ggrc.api_helper import Api
 
-from ggrc_workflows.services.workflow_cycle_calculator import \
-    weekly_cycle_calculator as wcc
-
 from integration.ggrc_workflows.workflow_cycle_calculator import \
     base_workflow_test_case
 
