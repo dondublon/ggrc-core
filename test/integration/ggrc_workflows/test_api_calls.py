@@ -114,24 +114,24 @@ class TestWorkflowsApiPost(BaseWorkflowTestCase):
     # region using generator
     default_user = Person.query.all()[0]  # email="user@example.com"
     # print("defalut_user", dir(defalut_user),
-    # defalut_user.email, defalut_user.id)
+    # default_user.email, defalut_user.id)
     self.generator.api.set_user(default_user)
     _, wf_gen = self.generator.generate_workflow(weekly_wf)
     _, task_gr = self.generator.generate_task_group(wf_gen)
-    #_, tgt =
+    # _, tgt =
     # self.generator.generate_task_group_task(task_gr)
     # _, tgo = self.generator.generate_task_group_object(tgt)  # crash
 
-    #_, awf =
+    # _, awf =
     # self.generator.activate_workflow(wf_gen)
 
     tgt_found = TaskGroupTask.query.filter(
-      TaskGroupTask.task_group_id == task_gr.id)
+                        TaskGroupTask.task_group_id == task_gr.id)
     # tgo_found = TaskGroupObject.query.filter(
     #   TaskGroupObject.task_group_id == task_gr.id)
     tgt_obj = tgt_found.one()
     cycle_task_found = CycleTaskGroupObjectTask.query.filter(
-      CycleTaskGroupObjectTask.task_group_task_id == tgt_obj.id)
+                        CycleTaskGroupObjectTask.task_group_task_id == tgt_obj.id)
     ct_obj = cycle_task_found.one()
 
     old_get_user_id = login.get_current_user_id
@@ -143,8 +143,6 @@ class TestWorkflowsApiPost(BaseWorkflowTestCase):
     self.assertTrue(allow_decline)
     self.assertTrue(allow_verify)
     # end region
-
-
 
   def test_relative_to_day(self):
     """Test relative day to date conversion for weekly workflows"""
@@ -168,7 +166,6 @@ class TestWorkflowsApiPost(BaseWorkflowTestCase):
         ]
     }
     _, wf = self.generator.generate_workflow(weekly_wf)
-
 
   # TODO: Api should be able to handle invalid data
   @unittest.skip("Not implemented.")
