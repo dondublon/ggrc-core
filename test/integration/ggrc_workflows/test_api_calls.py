@@ -9,8 +9,12 @@ from ggrc_workflows.models import TaskGroup
 from ggrc_workflows.models import Workflow
 
 from integration.ggrc.api_helper import Api
-from integration.ggrc_workflows import workflow_cycle_calculator
-from workflow_cycle_calculator import base_workflow_test_case
+
+from ggrc_workflows.services.workflow_cycle_calculator import \
+    weekly_cycle_calculator as wcc
+
+from integration.ggrc_workflows.workflow_cycle_calculator import \
+    base_workflow_test_case
 
 # for buttons test:
 from ggrc import login  # for get_current_user_id, mock it.
