@@ -5,14 +5,13 @@ import unittest
 # for buttons test:
 from mock import MagicMock
 
-from ggrc_workflows.models import TaskGroup
-from ggrc_workflows.models import Workflow
-
 from integration.ggrc.api_helper import Api
 
 from integration.ggrc_workflows.workflow_cycle_calculator import \
     base_workflow_test_case
 
+from ggrc_workflows.models import TaskGroup
+from ggrc_workflows.models import Workflow
 # for buttons test:
 from ggrc import login  # for get_current_user_id, mock it.
 from ggrc.models import Person
@@ -22,7 +21,8 @@ from ggrc_workflows.models.task_group_task import TaskGroupTask as Tgt
 
 
 class TestWorkflowsApiPost(base_workflow_test_case.BaseWorkflowTestCase):
-
+  """Test for getting data throuth api.
+  Objects related to workflow."""
   def setUp(self):
     super(TestWorkflowsApiPost, self).setUp()
     self.api = Api()
