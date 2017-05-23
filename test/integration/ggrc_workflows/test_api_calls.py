@@ -9,13 +9,13 @@ from ggrc_workflows.models import TaskGroup
 from ggrc_workflows.models import Workflow
 
 from integration.ggrc.api_helper import Api
-from integration.ggrc_workflows.workflow_cycle_calculator.base_workflow_test_case import BaseWorkflowTestCase
+from integration.ggrc_workflows.workflow_cycle_calculator.base_workflow_test_case import \
+  BaseWorkflowTestCase
 
 # for buttons test:
-from ggrc_workflows.models.cycle_task_group_object_task import \
-  CycleTaskGroupObjectTask
 from ggrc import login  # for get_current_user_id, mock it.
 from ggrc.models import Person
+from ggrc_workflows.models.cycle_task_group_object_task import CycleTaskGroupObjectTask
 from ggrc_workflows.models.task_group_task import TaskGroupTask
 
 
@@ -118,10 +118,12 @@ class TestWorkflowsApiPost(BaseWorkflowTestCase):
     self.generator.api.set_user(default_user)
     _, wf_gen = self.generator.generate_workflow(weekly_wf)
     _, task_gr = self.generator.generate_task_group(wf_gen)
-    _, tgt = self.generator.generate_task_group_task(task_gr)
+    #_, tgt =
+    # self.generator.generate_task_group_task(task_gr)
     # _, tgo = self.generator.generate_task_group_object(tgt)  # crash
 
-    _, awf = self.generator.activate_workflow(wf_gen)
+    #_, awf =
+    # self.generator.activate_workflow(wf_gen)
 
     tgt_found = TaskGroupTask.query.filter(
       TaskGroupTask.task_group_id == task_gr.id)
