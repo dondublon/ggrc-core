@@ -32,7 +32,7 @@ from ggrc.fulltext.attributes import (
 )
 
 from ggrc.fulltext.mixin import Indexed, ReindexRule
-from ggrc import login # import get_current_user_id
+from ggrc import login  # import get_current_user_id
 
 
 class CycleTaskGroupObjectTask(

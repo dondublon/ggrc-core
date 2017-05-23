@@ -2,15 +2,21 @@
 # Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
 import unittest
+# for buttons test:
+from mock import MagicMock
 
 from ggrc_workflows.models import TaskGroup
 from ggrc_workflows.models import Workflow
-# for cycle task test:
-from ggrc_workflows.models import Cycle
 
-from integration.ggrc import TestCase
 from integration.ggrc.api_helper import Api
 from integration.ggrc_workflows.workflow_cycle_calculator.base_workflow_test_case import BaseWorkflowTestCase
+
+# for buttons test:
+from ggrc_workflows.models.cycle_task_group_object_task import \
+  CycleTaskGroupObjectTask
+from ggrc import login  # for get_current_user_id, mock it.
+from ggrc.models import Person
+from ggrc_workflows.models.task_group_task import TaskGroupTask
 
 
 class TestWorkflowsApiPost(BaseWorkflowTestCase):
@@ -74,12 +80,9 @@ class TestWorkflowsApiPost(BaseWorkflowTestCase):
     self.assertEqual(response.status_code, 201)
 
   def test_cycle_task_button_keys(self):
-    from ggrc_workflows.models.task_group_task import TaskGroupTask
-    from ggrc_workflows.models.cycle_task_group_object_task import \
-      CycleTaskGroupObjectTask
-    from ggrc.models import Person
-    from mock import MagicMock
-    from ggrc import login # for get_current_user_id, mock it.
+    """Test for keys 'allow_decline' and 'allow_verify'
+    in CycleTestTask.
+       """
 
     weekly_wf = {
         "title": "weekly thingy",
