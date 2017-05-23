@@ -5,11 +5,16 @@ import unittest
 
 from ggrc_workflows.models import TaskGroup
 from ggrc_workflows.models import Workflow
+# for cycle task test:
+from ggrc_workflows.models import Cycle
+
 from integration.ggrc import TestCase
 from integration.ggrc.api_helper import Api
+import pdb
+from integration.ggrc_workflows.workflow_cycle_calculator.base_workflow_test_case import BaseWorkflowTestCase
 
 
-class TestWorkflowsApiPost(TestCase):
+class TestWorkflowsApiPost(BaseWorkflowTestCase):
 
   def setUp(self):
     super(TestWorkflowsApiPost, self).setUp()
@@ -68,6 +73,83 @@ class TestWorkflowsApiPost(TestCase):
 
     response = self.api.post(TaskGroup, data)
     self.assertEqual(response.status_code, 201)
+
+  def test_cycle_task_button_keys(self):
+    from integration.ggrc_workflows.models import factories
+    # region Create Workflow and Task Group like as previous test.
+
+    weekly_wf = {
+        "title": "weekly thingy",
+        "description": "start this many a time",
+        "frequency": "weekly",
+        "task_groups": [{
+            "title": "tg_2",
+            "task_group_tasks": [
+                {
+                    'title': 'weekly task 1',
+                    "relative_start_day": 2,  # Tuesday, 9th
+                    "relative_start_month": None,
+                    "relative_end_day": 4,  # Thursday, 11th
+                    "relative_end_month": None,
+                },
+                {
+                    'title': 'weekly task 2',
+                    "relative_start_day": 3,  # Wednesday, 10th
+                    "relative_start_month": None,
+                    "relative_end_day": 1,  # 15th, Monday
+                    "relative_end_month": None,
+                }
+            ],
+            "task_group_objects": self.random_objects
+        },
+        ]
+    }
+
+    # region using generator
+    _, wf_gen = self.generator.generate_workflow(weekly_wf)
+    wf_id = wf_gen.id
+    _, tg = self.generator.generate_task_group(wf_gen)
+    _, awf = self.generator.activate_workflow(wf_gen)
+    # my:
+    _, tgt = self.generator.generate_task_group_task(tg)
+    # _, tgo = self.generator.generate_task_group_object(tg)  # crash
+    _, cycle = self.generator.generate_cycle(wf_gen)
+    # end region
+
+    # using factories
+    wf_fac = factories.WorkflowFactory()
+    print ("wf fac", wf_fac)
+
+    # endregion
+
+    print("wf gen id", wf_id)
+
+    # self.assertEqual(wf_response.status_code, 200)
+
+
+  def test_relative_to_day(self):
+    """Test relative day to date conversion for weekly workflows"""
+    weekly_wf = {
+        "title": "weekly thingy",
+        "description": "start this many a time",
+        "frequency": "weekly",
+        "task_groups": [{
+            "title": "tg_2",
+            "task_group_tasks": [
+                {
+                    'title': 'weekly task 1',
+                    "relative_start_day": 2,  # Tuesday, 9th
+                    "relative_start_month": None,
+                    "relative_end_day": 4,  # Thursday, 11th
+                    "relative_end_month": None,
+                }
+            ],
+            "task_group_objects": self.random_objects
+        },
+        ]
+    }
+    _, wf = self.generator.generate_workflow(weekly_wf)
+
 
   # TODO: Api should be able to handle invalid data
   @unittest.skip("Not implemented.")
