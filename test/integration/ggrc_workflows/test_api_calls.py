@@ -117,8 +117,6 @@ class TestWorkflowsApiPost(base_workflow_test_case.BaseWorkflowTestCase):
 
     # region using generator
     default_user = Person.query.all()[0]  # email="user@example.com"
-    # print("defalut_user", dir(defalut_user),
-    # default_user.email, defalut_user.id)
     self.generator.api.set_user(default_user)
     _, wf_gen = self.generator.generate_workflow(weekly_wf)
     _, task_gr = self.generator.generate_task_group(wf_gen)
