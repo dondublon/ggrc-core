@@ -144,29 +144,6 @@ class TestWorkflowsApiPost(base_workflow_test_case.BaseWorkflowTestCase):
     self.assertTrue(allow_verify)
     # end region
 
-  def test_relative_to_day(self):
-    """Test relative day to date conversion for weekly workflows"""
-    weekly_wf = {
-        "title": "weekly thingy",
-        "description": "start this many a time",
-        "frequency": "weekly",
-        "task_groups": [{
-            "title": "tg_2",
-            "task_group_tasks": [
-                {
-                    'title': 'weekly task 1',
-                    "relative_start_day": 2,  # Tuesday, 9th
-                    "relative_start_month": None,
-                    "relative_end_day": 4,  # Thursday, 11th
-                    "relative_end_month": None,
-                }
-            ],
-            "task_group_objects": self.random_objects
-        },
-        ]
-    }
-    _, wf = self.generator.generate_workflow(weekly_wf)
-
   # TODO: Api should be able to handle invalid data
   @unittest.skip("Not implemented.")
   def test_create_task_group_invalid_workflow_data(self):
